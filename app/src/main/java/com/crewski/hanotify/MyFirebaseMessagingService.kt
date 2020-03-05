@@ -1,214 +1,227 @@
 package com.crewski.hanotify
 
+import android.annotation.SuppressLint
 import android.app.Notification
-import android.content.Intent
-import com.google.firebase.messaging.FirebaseMessagingService
-import com.google.firebase.messaging.RemoteMessage
+import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.support.v4.app.NotificationCompat
-import android.media.RingtoneManager
 import android.app.PendingIntent
 import android.content.Context
-import android.app.NotificationChannel
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Build
 import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Icon
 import android.util.Log
-import android.util.Log.d
 import android.webkit.URLUtil
+import com.google.firebase.messaging.FirebaseMessagingService
+import com.google.firebase.messaging.RemoteMessage
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
-import java.net.MalformedURLException
 import java.net.URL
-import java.util.*
+import java.util.function.Consumer
 
-
+@SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
-    override fun onMessageReceived(remoteMessage: RemoteMessage?) {
-        // ...
-        // Check if message contains a data payload.
-
-
-        var title = ""
-        var message = ""
-        var color = ""
-        var tag = (353..37930).random()
-        var actions: JSONArray = JSONArray()
-        var image = ""
-        var icon = ""
-
-        val dataJSON = JSONObject(remoteMessage!!.data);
+    override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        val dataJSON = JSONObject(remoteMessage.data)
 
         Log.d("Message", dataJSON.toString())
 
-        if (dataJSON.has("title")) {
-            title = dataJSON.getString("title")// handler
-        }
-        if (dataJSON.has("body")) {
-            message = dataJSON.getString("body")// handler
-        }
-        if (dataJSON.has("color")) {
-            color = dataJSON.getString("color")// handler
-        }
-        if (dataJSON.has("actions")) {
-            actions = JSONArray(dataJSON.getString("actions"))// handler
-        }
-        if (dataJSON.has("tag")) {
-            try {
-                tag = dataJSON.getInt("tag")
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        var id = (353..37930).random()
+        val group = if (dataJSON.has("group")) dataJSON.getString("group") else ""
+
+        if (dataJSON.has("id")) {
+            id = try {
+                dataJSON.getInt("id")
             } catch (e: JSONException) {
-                // Oops
+                dataJSON.getString("id").hashCode()
             }
 
-            if (dataJSON.has("dismiss")) {
-                try {
-                    if (dataJSON.getBoolean("dismiss") == true) {
-                        val notificationManager: NotificationManager = this.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                        notificationManager.cancel(tag)
-                        return
-                    }
-                } catch (e: JSONException) {
-                    // Oops
-                }
-
-            }
-        }
-        if (dataJSON.has("image")) {
-            try {
-                image = dataJSON.getString("image")
-            } catch (e: JSONException) {
-                Log.d("Exception", e.toString())
+            if (getBoolean(dataJSON,"dismiss")) {
+                notificationManager.cancel(id)
+                return
             }
         }
 
-        if (dataJSON.has("icon")) {
-            try {
-                icon = dataJSON.getString("icon")
-            } catch (e: JSONException) {
-                Log.d("Exception", e.toString())
-            }
-        }
-
-
-        sendNotification(message, title, color, actions, tag, image, icon)
-
-    }
-
-    /**
-     * Create and show a simple notification containing the received FCM message.
-     *
-     * @param messageBody FCM message body received.
-     */
-    private fun sendNotification(messageBody: String, title: String, color: String, actions: JSONArray, tag: Int, image_url: String, icon_url: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
-//        val notification_id = (353..37930).random()
-        val channelId = "HomeAssistant"
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId,
-                    "Channel human readable title",
-                    NotificationManager.IMPORTANCE_DEFAULT)
-            notificationManager.createNotificationChannel(channel)
-        }
+        val silent = getBoolean(dataJSON, "silent")
+        val channelId = if (silent) "silent" else "default"
+        val channelName = if (silent) "Silent" else "Default"
 
-        if (Build.VERSION.SDK_INT < 26) {
-            val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            val notificationBuilder = NotificationCompat.Builder(this, channelId)
-                    .setSmallIcon(R.drawable.notification_icon)
-                    .setStyle(NotificationCompat.BigTextStyle().bigText(messageBody))
-                    .setContentTitle(title)
-                    .setContentText(messageBody)
-                    .setAutoCancel(true)
-                    .setSound(defaultSoundUri)
-                    .setColor(Color.parseColor(color))
-            if (URLUtil.isValidUrl(image_url)) {
-                val image = getBitmapFromURL(image_url)
-                if (image != null) {
-                    notificationBuilder.setStyle(NotificationCompat.BigPictureStyle().bigPicture(image).bigLargeIcon(BitmapFactory.decodeResource(this.resources, R.drawable.blank_icon)))
-                    notificationBuilder.setLargeIcon(image)
+        val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH)
+        if (silent)
+            channel.setSound(null, null)
+
+        notificationManager.createNotificationChannel(channel)
+
+        val notificationBuilder = Notification.Builder(this, channelId)
+                .setSmallIcon(R.drawable.notification_icon)
+
+        if (group.isNotEmpty())
+            notificationBuilder.setGroup(group)
+
+        applyString(dataJSON, "text", Consumer { text ->
+            notificationBuilder.setStyle(Notification.BigTextStyle().bigText(text))
+            notificationBuilder.setContentText(text)
+        })
+
+        applyString(dataJSON, "title", Consumer { title -> notificationBuilder.setContentTitle(title) })
+        applyString(dataJSON, "subText", Consumer { subText -> notificationBuilder.setSubText(subText) })
+        applyInteger(dataJSON, "number", Consumer { number -> notificationBuilder.setNumber(number) })
+        applyLong(dataJSON, "time", System.currentTimeMillis(), Consumer { time -> notificationBuilder.setWhen(time) })
+        applyBoolean(dataJSON, "showTime", true, Consumer { showTime -> notificationBuilder.setShowWhen(showTime) })
+        applyBoolean(dataJSON, "autoCancel", true, Consumer { autoCancel -> notificationBuilder.setAutoCancel(autoCancel) })
+        applyBoolean(dataJSON, "onlyOnce", Consumer { onlyOnce -> notificationBuilder.setOnlyAlertOnce(onlyOnce) })
+        applyBoolean(dataJSON, "local", Consumer { local -> notificationBuilder.setLocalOnly(local) })
+        applyString(dataJSON, "color", Consumer { color -> notificationBuilder.setColor(Color.parseColor(color)) })
+        applyBoolean(dataJSON, "colorized", Consumer { colorized -> notificationBuilder.setColorized(colorized) })
+        applyBoolean(dataJSON, "persistent", Consumer { persistent -> notificationBuilder.setOngoing(persistent) })
+
+        applyString(dataJSON, "image", Consumer { image ->
+            if (URLUtil.isValidUrl(image)) {
+                val imageBmp = getBitmapFromURL(image)
+                if (imageBmp != null) {
+                    notificationBuilder.setStyle(Notification.BigPictureStyle().bigPicture(imageBmp).bigLargeIcon(Icon.createWithResource(this, R.drawable.blank_icon)))
+                    notificationBuilder.setLargeIcon(imageBmp)
                 }
             }
+        })
+
+        applyString(dataJSON, "icon", Consumer { icon ->
+            if (URLUtil.isValidUrl(icon)) {
+                val iconBmp = getBitmapFromURL(icon)
+                if (iconBmp != null) {
+                    notificationBuilder.setSmallIcon(Icon.createWithBitmap(iconBmp))
+                }
+            }
+        })
+
+        applyString(dataJSON, "actions", Consumer { actionsStr ->
+            val actions = JSONArray(actionsStr)
+
             for (i in 0 until 3) {
                 try {
-                    val iObject = actions.getJSONObject(i)
-                    val ititle = iObject.getString("title")
-                    val action = iObject.getString("action")
+                    val actionJSON = actions.getJSONObject(i)
+                    val title = actionJSON.getString("title")
+                    val action = actionJSON.getString("action")
                     val broadcastIntent = Intent(this, ResponseReceiver::class.java)
-                    broadcastIntent.putExtra("id", tag)
+                    broadcastIntent.putExtra("id", id)
                     broadcastIntent.putExtra("action", action)
                     val actionIntent = PendingIntent.getBroadcast(this, (353..37930).random(), broadcastIntent, 0)
-                    notificationBuilder.addAction(R.drawable.notification_icon, ititle, actionIntent)
-
-                } catch (e: JSONException) {
-                    Log.d("Exception", e.toString())
-                }
-            }
-            notificationManager.notify(tag /* ID of notification */, notificationBuilder.build())
-
-        } else {
-            val notificationBuilder = Notification.Builder(this, channelId)
-                    .setSmallIcon(R.drawable.notification_icon)
-                    .setStyle(Notification.BigTextStyle().bigText(messageBody))
-                    .setContentTitle(title)
-                    .setContentText(messageBody)
-                    .setAutoCancel(true)
-                    .setColor(Color.parseColor(color))
-            if (URLUtil.isValidUrl(image_url)) {
-                val image = getBitmapFromURL(image_url)
-                if (image != null) {
-                    notificationBuilder.setStyle(Notification.BigPictureStyle().bigPicture(image).bigLargeIcon(Icon.createWithResource(this, R.drawable.blank_icon)))
-                    notificationBuilder.setLargeIcon(image)
-                }
-            }
-            if (URLUtil.isValidUrl(icon_url)) {
-                val icon = getBitmapFromURL(icon_url)
-                if (icon != null) {
-                    notificationBuilder.setSmallIcon(Icon.createWithBitmap(icon))
-                }
-            }
-            for (i in 0 until 3) {
-                try {
-                    val iObject = actions.getJSONObject(i)
-                    val ititle = iObject.getString("title")
-                    val action = iObject.getString("action")
-                    val broadcastIntent = Intent(this, ResponseReceiver::class.java)
-                    broadcastIntent.putExtra("id", tag)
-                    broadcastIntent.putExtra("action", action)
-                    val actionIntent = PendingIntent.getBroadcast(this, (353..37930).random(), broadcastIntent, 0)
-                    val notificationAction = Notification.Action.Builder(Icon.createWithResource(this, R.drawable.notification_icon), ititle, actionIntent).build()
+                    val notificationAction = Notification.Action.Builder(Icon.createWithResource(this, R.drawable.notification_icon), title, actionIntent).build()
                     notificationBuilder.addAction(notificationAction)
 
                 } catch (e: JSONException) {
                     Log.d("Exception", e.toString())
                 }
             }
+        })
 
-            notificationManager.notify(tag /* ID of notification */, notificationBuilder.build())
+        val notification = notificationBuilder.build()
+        notificationManager.notify(id /* ID of notification */, notification)
+
+        if (group.isNotEmpty()) {
+            val summaryNotification = Notification.Builder(this, channelId)
+//                        .setContentTitle("Your summary message")
+                    .setSmallIcon(R.drawable.notification_icon)
+//                .setLargeIcon(largeIcon)
+                    .setStyle(Notification.InboxStyle()
+                            .addLine("Details about your first notification")
+                            .addLine("Details about your second notification")
+                            .setBigContentTitle("5 new notifications"))
+                    .setGroup(group)
+                    .setGroupSummary(true)
+                    .build()
+
+            notificationManager.notify(group.hashCode(), summaryNotification)
         }
-
     }
 
-    fun ClosedRange<Int>.random() =
-            Random().nextInt((endInclusive + 1) - start) + start
+    private fun applyString(json: JSONObject, attribute: String, consumer: Consumer<String>) {
+        if (json.has(attribute)) {
+            try {
+                val value = json.getString(attribute)
+                consumer.accept(value)
+            } catch (e: JSONException) {
+                Log.d("Exception", e.toString())
+            }
+        }
+    }
 
-    fun getBitmapFromURL(image_url: String): Bitmap? {
-        try {
+    private fun applyBoolean(json: JSONObject, attribute: String, consumer: Consumer<Boolean>): Boolean {
+        if (json.has(attribute)) {
+            try {
+                val value = json.getBoolean(attribute)
+                consumer.accept(value)
+                return true
+            } catch (e: JSONException) {
+                Log.d("Exception", e.toString())
+            }
+        }
+        return false
+    }
+
+    @Suppress("SameParameterValue")
+    private fun applyBoolean(json: JSONObject, attribute: String, defaultValue: Boolean, consumer: Consumer<Boolean>) {
+        if (!applyBoolean(json, attribute, consumer))
+            consumer.accept(defaultValue)
+    }
+
+    @Suppress("SameParameterValue")
+    private fun applyInteger(json: JSONObject, attribute: String, consumer: Consumer<Int>) {
+        if (json.has(attribute)) {
+            try {
+                val value = json.getInt(attribute)
+                consumer.accept(value)
+            } catch (e: JSONException) {
+                Log.d("Exception", e.toString())
+            }
+        }
+    }
+
+    @Suppress("SameParameterValue")
+    private fun applyLong(json: JSONObject, attribute: String, defaultValue: Long, consumer: Consumer<Long>) {
+        if (json.has(attribute)) {
+            try {
+                val value = json.getLong(attribute)
+                consumer.accept(value)
+                return
+            } catch (e: JSONException) {
+                Log.d("Exception", e.toString())
+            }
+        }
+
+        consumer.accept(defaultValue)
+    }
+
+    private fun getBoolean(json: JSONObject, attribute: String): Boolean {
+        if (json.has(attribute)) {
+            try {
+                return json.getBoolean(attribute)
+            } catch (e: JSONException) {
+                Log.d("Exception", e.toString())
+            }
+        }
+
+        return false
+    }
+
+    private fun getBitmapFromURL(image_url: String): Bitmap? {
+        return try {
             val url = URL(image_url)
             val connection = url.openConnection()
             connection.doInput = true
             connection.connect()
             val input = connection.getInputStream()
-            return BitmapFactory.decodeStream(input);
+            BitmapFactory.decodeStream(input)
         } catch (e: IOException) {
-            return null
+            null
         }
     }
 }
