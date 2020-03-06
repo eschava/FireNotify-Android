@@ -1,4 +1,4 @@
-package com.crewski.hanotify
+package com.eschava.firenotify
 
 import org.junit.Test
 

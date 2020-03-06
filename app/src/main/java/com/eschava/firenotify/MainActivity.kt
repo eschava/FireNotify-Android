@@ -1,4 +1,4 @@
-package com.crewski.hanotify
+package com.eschava.firenotify
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -13,7 +13,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val token = FirebaseInstanceId.getInstance().token
-        ha_url.setText(token)
+        tokenTextView.setText(token)
 //        val sharedPref = getSharedPreferences(getString(R.string.preference_file), Context.MODE_PRIVATE)
 //        val url = sharedPref.getString(getString(R.string.home_assistant_url), "")
 //        ha_url.setText(url)

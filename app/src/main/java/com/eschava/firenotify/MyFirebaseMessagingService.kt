@@ -1,4 +1,4 @@
-package com.crewski.hanotify
+package com.eschava.firenotify
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -61,7 +61,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         notificationManager.createNotificationChannel(channel)
 
         val notificationBuilder = Notification.Builder(this, channelId)
-                .setSmallIcon(R.drawable.notification_icon)
+                .setSmallIcon(R.drawable.notification_icon_vector)
 
         if (group.isNotEmpty())
             notificationBuilder.setGroup(group)
@@ -114,7 +114,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     broadcastIntent.putExtra("id", id)
                     broadcastIntent.putExtra("action", action)
                     val actionIntent = PendingIntent.getBroadcast(this, (353..37930).random(), broadcastIntent, 0)
-                    val notificationAction = Notification.Action.Builder(Icon.createWithResource(this, R.drawable.notification_icon), title, actionIntent).build()
+                    val notificationAction = Notification.Action.Builder(Icon.createWithResource(this, R.drawable.application_icon), title, actionIntent).build()
                     notificationBuilder.addAction(notificationAction)
 
                 } catch (e: JSONException) {
@@ -129,7 +129,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         if (group.isNotEmpty()) {
             val summaryNotification = Notification.Builder(this, channelId)
 //                        .setContentTitle("Your summary message")
-                    .setSmallIcon(R.drawable.notification_icon)
+                    .setSmallIcon(R.drawable.notification_icon_vector)
 //                .setLargeIcon(largeIcon)
                     .setStyle(Notification.InboxStyle()
                             .addLine("Details about your first notification")

@@ -1,83 +1,37 @@
 {
   "project_info": {
-    "project_number": "37399669457",
-    "firebase_url": "https://ha-fcm-notify.firebaseio.com",
-    "project_id": "ha-fcm-notify",
-    "storage_bucket": "ha-fcm-notify.appspot.com"
+    "project_number": "450594753015",
+    "firebase_url": "https://firenotify-7118f.firebaseio.com",
+    "project_id": "firenotify-7118f",
+    "storage_bucket": "firenotify-7118f.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:37399669457:android:0fb9036672c50fb2",
+        "mobilesdk_app_id": "1:450594753015:android:f456bf4878129aaebd46f2",
         "android_client_info": {
-          "package_name": "com.crewski.hanotify"
+          "package_name": "com.eschava.firenotify"
         }
       },
       "oauth_client": [
         {
-          "client_id": "37399669457-ti8p4vbmact23hr65jimp8lbnsbs6c4a.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.crewski.hanotify",
-            "certificate_hash": "3a0895e18f9f7da3d8274caf8779d6bc5b216af1"
-          }
-        },
-        {
-          "client_id": "37399669457-d293m0roq84qbl98oichs8vib9blehv3.apps.googleusercontent.com",
+          "client_id": "450594753015-t2q7c8n9c036vhfm71tr0bvnr5566kdi.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBweN7jHsfkKk44tQXZTURPDvo1fWp5-5Q"
+          "current_key": "AIzaSyCzzmNSBgxNzgz47pWW-_pSeRlJFKH4sjQ"
         }
       ],
       "services": {
-        "analytics_service": {
-          "status": 1
-        },
         "appinvite_service": {
-          "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "37399669457-d293m0roq84qbl98oichs8vib9blehv3.apps.googleusercontent.com",
+              "client_id": "450594753015-t2q7c8n9c036vhfm71tr0bvnr5566kdi.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
-        },
-        "ads_service": {
-          "status": 2
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:37399669457:android:91fa0c599f5c72ad",
-        "android_client_info": {
-          "package_name": "com.crewski.homeassistantnotify"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "37399669457-d293m0roq84qbl98oichs8vib9blehv3.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBweN7jHsfkKk44tQXZTURPDvo1fWp5-5Q"
-        }
-      ],
-      "services": {
-        "analytics_service": {
-          "status": 1
-        },
-        "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
-        },
-        "ads_service": {
-          "status": 2
         }
       }
     }

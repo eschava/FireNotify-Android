@@ -1,4 +1,4 @@
-package com.crewski.hanotify
+package com.eschava.firenotify
 
 import android.content.BroadcastReceiver
 import android.content.Context
