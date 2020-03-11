@@ -9,7 +9,8 @@ Android client for push notifications through Firebase service (FCM)
 
 # API
 
-API is based on the Firebase JSON API
+API is based on the Firebase JSON API  
+Both keys (auth key and client token) are shown at the main application screen
 
 Example (for Python):
 
