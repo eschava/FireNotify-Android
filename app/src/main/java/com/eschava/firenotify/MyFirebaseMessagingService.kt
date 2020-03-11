@@ -111,14 +111,19 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 try {
                     val actionJSON = actions.getJSONObject(i)
                     val title = actionJSON.getString("title")
-                    val action = actionJSON.getString("action")
+                    val data = if (actionJSON.has("data")) actionJSON.getJSONObject("data").toString() else null
+                    val to = if (actionJSON.has("to")) actionJSON.getString("to") else null
+                    val dismiss = getBoolean(actionJSON, "dismiss")
+
                     val broadcastIntent = Intent(this, ResponseReceiver::class.java)
                     broadcastIntent.putExtra("id", id)
-                    broadcastIntent.putExtra("action", action)
+                    broadcastIntent.putExtra("data", data)
+                    broadcastIntent.putExtra("to", to)
+                    broadcastIntent.putExtra("dismiss", dismiss)
+
                     val actionIntent = PendingIntent.getBroadcast(this, (353..37930).random(), broadcastIntent, 0)
                     val notificationAction = Notification.Action.Builder(Icon.createWithResource(this, R.drawable.application_icon), title, actionIntent).build()
                     notificationBuilder.addAction(notificationAction)
-
                 } catch (e: JSONException) {
                     Log.d("Exception", e.toString())
                 }
