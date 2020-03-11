@@ -53,8 +53,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val silent = getBoolean(dataJSON, "silent")
         val channelId = if (silent) "silent" else "default"
         val channelName = if (silent) "Silent" else "Default"
+        val importance = if (silent) NotificationManager.IMPORTANCE_DEFAULT else NotificationManager.IMPORTANCE_HIGH
 
-        val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH)
+        val channel = NotificationChannel(channelId, channelName, importance)
         if (silent)
             channel.setSound(null, null)
 
@@ -62,6 +63,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         val notificationBuilder = Notification.Builder(this, channelId)
                 .setSmallIcon(R.drawable.notification_icon_vector)
+                .setLargeIcon(Icon.createWithResource(this, R.drawable.application_icon))
 
         if (group.isNotEmpty())
             notificationBuilder.setGroup(group)

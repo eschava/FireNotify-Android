@@ -1,5 +1,9 @@
 package com.eschava.firenotify
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.google.firebase.iid.FirebaseInstanceId
@@ -12,65 +16,43 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+//        actionBar?.setLogo(R.drawable.application_icon)
+//        actionBar?.setDisplayUseLogoEnabled(true)
+
+        val fcmKey = getString(R.string.fcm_key)
+        keyTextView.setText(fcmKey)
+
+        copyKeyButton.setOnClickListener {
+            val clipboard: ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("Key", fcmKey)
+            clipboard.primaryClip = clip
+        }
+
+        shareKeyButton.setOnClickListener {
+            val shareIntent = Intent()
+            shareIntent.action = Intent.ACTION_SEND
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Key")
+            shareIntent.putExtra(Intent.EXTRA_TEXT, fcmKey)
+            shareIntent.type = "text/plain"
+            startActivity(shareIntent)
+        }
+
         val token = FirebaseInstanceId.getInstance().token
         tokenTextView.setText(token)
-//        val sharedPref = getSharedPreferences(getString(R.string.preference_file), Context.MODE_PRIVATE)
-//        val url = sharedPref.getString(getString(R.string.home_assistant_url), "")
-//        ha_url.setText(url)
-//        val api_password = sharedPref.getString(getString(R.string.api_password), "")
-//        ha_passwrod.setText(api_password)
 
-//    register_btn.setOnClickListener{
-//        var url = ha_url.text.toString()
-//        val password = ha_passwrod.text.toString()
-//
-//        if (!URLUtil.isValidUrl(url)){
-//            Toast.makeText(this, "Invalid URL", Toast.LENGTH_SHORT).show()
-//            return@setOnClickListener
-//        }
-//        url = url.removeSuffix("/")
+        copyTokenButton.setOnClickListener {
+            val clipboard: ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("Token", token)
+            clipboard.primaryClip = clip
+        }
 
-//        with (sharedPref.edit()) {
-//            putString(getString(R.string.home_assistant_url), url)
-//            putString(getString(R.string.api_password), password)
-//            commit()
-//        }
-
-
-//        FirebaseInstanceId.getInstance().getToken()
-//        FirebaseInstanceId.getInstance().gM
-
-
-//        val dataJSON = JSONObject()
-//        dataJSON.put("token", token)
-//        val que = Volley.newRequestQueue(this)
-//        val url_suffix = getString(R.string.url_suffix)
-//        val req = object : JsonObjectRequest(Request.Method.POST, "$url$url_suffix", dataJSON,
-//                Response.Listener { response ->
-//                    val resJSON = JSONObject(response.toString())
-//                    Toast.makeText(this, resJSON.getString("message"), Toast.LENGTH_SHORT).show()
-//
-//                }, Response.ErrorListener { error ->  Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show()
-//
-//        }) {
-//            @Throws(AuthFailureError::class)
-//            override fun getHeaders(): Map<String, String> {
-//                val headers = HashMap<String, String>()
-//                headers.put("Content-Type", "application/json");
-//                headers.put("x-ha-access", password)
-//                return headers
-//            }
-//        }
-//
-//        que.add(req)
-//    }
-
-
+        shareTokenButton.setOnClickListener {
+            val shareIntent = Intent()
+            shareIntent.action = Intent.ACTION_SEND
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Token")
+            shareIntent.putExtra(Intent.EXTRA_TEXT, token)
+            shareIntent.type = "text/plain"
+            startActivity(shareIntent)
+        }
     }
-
-
-
-//    fun btnConnectHandler(){
-//
-//    }
 }

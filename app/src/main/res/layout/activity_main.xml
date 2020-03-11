@@ -7,32 +7,119 @@
     tools:context=".MainActivity"
     tools:layout_editor_absoluteY="81dp">
 
-    <EditText
-        android:id="@+id/tokenTextView"
+    <TextView
+        android:id="@+id/keyLabel"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="1dp"
-        android:layout_marginEnd="1dp"
-        android:layout_marginBottom="333dp"
-        android:editable="false"
-        android:ems="10"
-        android:gravity="start|top"
-        android:inputType="textMultiLine"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="12dp"
+        android:labelFor="@id/keyTextView"
+        android:text="@string/keyLabel"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tokenLabel" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/keyTextLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/keyLabel">
+
+        <EditText
+            android:id="@+id/keyTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:autofillHints=""
+            android:editable="false"
+            android:ems="10"
+            android:gravity="start|top"
+            android:inputType="textMultiLine"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/copyKeyButton"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@tools:sample/lorem[20]" />
+
+        <ImageButton
+            android:id="@+id/copyKeyButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="@string/copy_key"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_content_copy_black_24dp" />
+
+        <ImageButton
+            android:id="@+id/shareKeyButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="@string/share_key"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/copyKeyButton"
+            app:srcCompat="@drawable/ic_share_black_24dp" />
+
+    </android.support.constraint.ConstraintLayout>
+
+
 
     <TextView
         android:id="@+id/tokenLabel"
-        android:layout_width="363dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="21dp"
-        android:layout_marginTop="19dp"
-        android:layout_marginBottom="13dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="12dp"
+        android:labelFor="@id/tokenTextView"
         android:text="@string/tokenLabel"
-        app:layout_constraintBottom_toTopOf="@+id/tokenTextView"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/keyTextLayout" />
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/tokenTextLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tokenLabel">
+
+        <EditText
+            android:id="@+id/tokenTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:autofillHints=""
+            android:editable="false"
+            android:ems="10"
+            android:gravity="start|top"
+            android:inputType="textMultiLine"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/copyTokenButton"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="@tools:sample/lorem[20]" />
+
+
+        <ImageButton
+            android:id="@+id/copyTokenButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="@string/copy_token"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_content_copy_black_24dp" />
+
+        <ImageButton
+            android:id="@+id/shareTokenButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:contentDescription="@string/share_token"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/copyTokenButton"
+            app:srcCompat="@drawable/ic_share_black_24dp" />
+
+    </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>
