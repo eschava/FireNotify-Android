@@ -51,9 +51,17 @@ class ResponseReceiver : BroadcastReceiver() {
 
                 val client = OkHttpClient()
                 val response: Response = client.newCall(request).execute()
+                val responseBody = response.body()!!.string()
 
-                if (!response.isSuccessful)
-                    showToast("""${response.code()} / ${response.body()!!.string()}""")
+                if (!response.isSuccessful) {
+                    showToast("""${response.code()} / $responseBody""")
+                } else {
+                    val jsonResponse = JSONObject(responseBody)
+                    val failure = jsonResponse.getInt("failure")
+                    if (failure > 0)
+                        showToast("Error: $responseBody")
+                }
+
             } catch (e: Exception) {
                 showToast(e.message)
                 Log.d("Exception", e.toString())
