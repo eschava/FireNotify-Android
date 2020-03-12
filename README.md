@@ -10,7 +10,7 @@ Android client for push notifications through Firebase service (FCM)
 # API
 
 API is based on the Firebase JSON API  
-Both keys (auth key and client token) are shown at the main application screen
+Both keys (API key and client token) are shown at the main application screen
 
 Example (for Python):
 
@@ -18,7 +18,7 @@ Example (for Python):
 import requests
 
 headers = {
-    'Authorization': 'key=' + AUTH_KEY,
+    'Authorization': 'key=' + API_KEY,
     'Content-Type': 'application/json'
 }
 
@@ -47,12 +47,13 @@ print(response.status_code)
  - *time* - UNIX timestamp with time when event happened. Is set to current time by default
  - *showTime* - "false" to hide time
  - *local* - "false" to do not transfer notification to wearable devices
- - *subText* - additional notification text  
+ - *subText* - additional text shown in the notification badge
+ - *number* - number shown in the notification badge
  - *color* - RGB color (e.g. "#50C0F2")
  - *colorized* - specifies whether notification should be colorized (true/false)
  - *persistent* - "true" for notifications which cannot be closed by user
  - *image* - URL of the custom image
- - *icon* - URL of the custom image
+ - *icon* - URL of the custom icon
  - *actions* - optional array of actions data (up to 4 elements). Each action could contain the next parameters:
       - *title* - text for action button
       - *dismiss* - "true" if executing action removes the notification

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.widget.Toast
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -26,6 +27,7 @@ class MainActivity : AppCompatActivity() {
             val clipboard: ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("Key", fcmKey)
             clipboard.primaryClip = clip
+            Toast.makeText(this, "Key copied to clipboard", Toast.LENGTH_SHORT).show()
         }
 
         shareKeyButton.setOnClickListener {
@@ -44,6 +46,7 @@ class MainActivity : AppCompatActivity() {
             val clipboard: ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("Token", token)
             clipboard.primaryClip = clip
+            Toast.makeText(this, "Token copied to clipboard", Toast.LENGTH_SHORT).show()
         }
 
         shareTokenButton.setOnClickListener {
