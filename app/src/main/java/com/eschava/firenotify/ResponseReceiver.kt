@@ -1,10 +1,12 @@
 package com.eschava.firenotify
 
 import android.app.NotificationManager
+import android.app.RemoteInput
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.AsyncTask
+import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.widget.Toast
@@ -16,20 +18,28 @@ class ResponseReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         val id = intent?.getIntExtra("id", 0)
         val dismiss = intent?.getBooleanExtra("dismiss", false)
+        val reply = intent?.getBooleanExtra("reply", false)
         val data = intent?.getStringExtra("data")
         val to = intent?.getStringExtra("to")
+        val idToDismiss = if (dismiss!! || reply!!) id else null // reply creates new notification so old one should be dismissed
 
-        if (dismiss!!) {
+        if (to != null) {
+            val jsonData = if (data != null) JSONObject(data) else JSONObject()
+
+            if (reply!!) {
+                val results: Bundle = RemoteInput.getResultsFromIntent(intent)
+                jsonData.put("reply", results.getCharSequence("reply"))
+            }
+
+            // don't dismiss right away if needed, response task should do this after sending response
+            ResponseTask(context, context.getString(R.string.fcm_key), to, jsonData, idToDismiss).execute()
+        } else if (idToDismiss != null) {
             val notificationManager: NotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.cancel(id!!)
-        }
-
-        if (to != null && data != null) {
-            ResponseTask(context, context.getString(R.string.fcm_key), to, JSONObject(data)).execute()
+            notificationManager.cancel(idToDismiss)
         }
     }
 
-    class ResponseTask(private var context: Context, private var fcmKey: String, private var to: String, private var data: JSONObject) : AsyncTask<Void, Void, String>() {
+    class ResponseTask(private var context: Context, private var fcmKey: String, private var to: String, private var data: JSONObject, private var idToDismiss: Int?) : AsyncTask<Void, Void, String>() {
         private val jsonMediaType: MediaType = MediaType.parse("application/json; charset=utf-8")!!
 
         override fun doInBackground(vararg params: Void?): String? {
@@ -58,8 +68,14 @@ class ResponseReceiver : BroadcastReceiver() {
                 } else {
                     val jsonResponse = JSONObject(responseBody)
                     val failure = jsonResponse.getInt("failure")
-                    if (failure > 0)
+                    if (failure > 0) {
                         showToast("Error: $responseBody")
+                    } else if (idToDismiss != null) {
+                        Handler(context.mainLooper).post {
+                            val notificationManager: NotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                            notificationManager.cancel(idToDismiss!!)
+                        }
+                    }
                 }
 
             } catch (e: Exception) {

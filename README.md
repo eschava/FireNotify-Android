@@ -57,6 +57,8 @@ print(response.status_code)
  - *actions* - optional array of actions data (up to 4 elements). Each action could contain the next parameters:
       - *title* - text for action button
       - *dismiss* - "true" if executing action removes the notification
-      - *data* - JSON object that is sent as callback message data when action is executed
       - *to* - FCM token of the client for sending callback message
+      - *data* - JSON object that is sent as callback message data when action is executed
+      - *reply* - "true" if this action should open input control for entering text. Text is sent in "reply" property of the callback message
+
  

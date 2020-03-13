@@ -1,10 +1,7 @@
 package com.eschava.firenotify
 
 import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -114,16 +111,21 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     val data = if (actionJSON.has("data")) actionJSON.getJSONObject("data").toString() else null
                     val to = if (actionJSON.has("to")) actionJSON.getString("to") else null
                     val dismiss = getBoolean(actionJSON, "dismiss")
+                    val reply = getBoolean(actionJSON, "reply")
+                    val replyText = if (actionJSON.has("replyText")) actionJSON.getString("replyText") else "Text"
 
                     val broadcastIntent = Intent(this, ResponseReceiver::class.java)
                     broadcastIntent.putExtra("id", id)
                     broadcastIntent.putExtra("data", data)
                     broadcastIntent.putExtra("to", to)
                     broadcastIntent.putExtra("dismiss", dismiss)
+                    broadcastIntent.putExtra("reply", reply)
 
                     val actionIntent = PendingIntent.getBroadcast(this, (353..37930).random(), broadcastIntent, 0)
-                    val notificationAction = Notification.Action.Builder(Icon.createWithResource(this, R.drawable.application_icon), title, actionIntent).build()
-                    notificationBuilder.addAction(notificationAction)
+                    val notificationActionBuilder = Notification.Action.Builder(Icon.createWithResource(this, R.drawable.application_icon), title, actionIntent)
+                    if (reply)
+                        notificationActionBuilder.addRemoteInput(RemoteInput.Builder("reply").setLabel(replyText).build())
+                    notificationBuilder.addAction(notificationActionBuilder.build())
                 } catch (e: JSONException) {
                     Log.d("Exception", e.toString())
                 }
