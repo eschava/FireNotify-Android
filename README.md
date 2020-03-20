@@ -24,6 +24,7 @@ headers = {
 
 payload = {
     'registration_ids': [CLIENT_TOKEN_ID],
+    'priority': 'high',
     'data':  {
         'text':  "Test Notification",
         'title': "Test"
