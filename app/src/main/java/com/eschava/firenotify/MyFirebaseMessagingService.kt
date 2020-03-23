@@ -86,8 +86,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             if (URLUtil.isValidUrl(image)) {
                 val imageBmp = getBitmapFromURL(image)
                 if (imageBmp != null) {
-                    notificationBuilder.setStyle(Notification.BigPictureStyle().bigPicture(imageBmp).bigLargeIcon(Icon.createWithResource(this, R.drawable.blank_icon)))
-                    notificationBuilder.setLargeIcon(imageBmp)
+                    notificationBuilder.style = Notification.BigPictureStyle().bigPicture(imageBmp).bigLargeIcon(Icon.createWithResource(this, R.drawable.blank_icon))
+                    //notificationBuilder.setLargeIcon(imageBmp)
                 }
             }
         })
@@ -96,11 +96,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             if (URLUtil.isValidUrl(icon)) {
                 val iconBmp = getBitmapFromURL(icon)
                 if (iconBmp != null) {
-                    notificationBuilder.setSmallIcon(Icon.createWithBitmap(iconBmp))
+                    notificationBuilder.setLargeIcon(Icon.createWithBitmap(iconBmp))
                 }
             }
         })
 
+        val commonTo = if (dataJSON.has("to")) dataJSON.getString("to") else null
         applyString(dataJSON, "actions", Consumer { actionsStr ->
             val actions = JSONArray(actionsStr)
 
@@ -109,7 +110,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     val actionJSON = actions.getJSONObject(i)
                     val title = actionJSON.getString("title")
                     val data = if (actionJSON.has("data")) actionJSON.getJSONObject("data").toString() else null
-                    val to = if (actionJSON.has("to")) actionJSON.getString("to") else null
+                    val to = if (actionJSON.has("to")) actionJSON.getString("to") else commonTo
                     val dismiss = getBoolean(actionJSON, "dismiss")
                     val reply = getBoolean(actionJSON, "reply")
                     val replyText = if (actionJSON.has("replyText")) actionJSON.getString("replyText") else "Text"

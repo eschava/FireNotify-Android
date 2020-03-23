@@ -55,10 +55,11 @@ print(response.status_code)
  - *persistent* - "true" for notifications which cannot be closed by user
  - *image* - URL of the custom image
  - *icon* - URL of the custom icon
+ - *to* - FCM token of the client for sending callback message
  - *actions* - optional array of actions data (up to 4 elements). Each action could contain the next parameters:
       - *title* - text for action button
       - *dismiss* - "true" if executing action removes the notification
-      - *to* - FCM token of the client for sending callback message
+      - *to* - FCM token of the client for sending callback message (optional, overrides FCM token from the main data)
       - *data* - JSON object that is sent as callback message data when action is executed
       - *reply* - "true" if this action should open input control for entering text. Text is sent in "reply" property of the callback message
 
