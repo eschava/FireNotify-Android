@@ -5,6 +5,7 @@ import android.app.RemoteInput
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Handler
@@ -21,7 +22,15 @@ class ResponseReceiver : BroadcastReceiver() {
         val reply = intent?.getBooleanExtra("reply", false)
         val data = intent?.getStringExtra("data")
         val to = intent?.getStringExtra("to")
+        val url = intent?.getStringExtra("url")
         val idToDismiss = if (dismiss!! || reply!!) id else null // reply creates new notification so old one should be dismissed
+
+        if (url != null) {
+            val urlIntent = Intent(Intent.ACTION_VIEW)
+            urlIntent.data = Uri.parse(url)
+            urlIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(urlIntent)
+        }
 
         if (to != null) {
             val jsonData = if (data != null) JSONObject(data) else JSONObject()

@@ -29,7 +29,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         var id = (353..37930).random()
-        val group = if (dataJSON.has("group")) dataJSON.getString("group") else ""
+        val group = getString(dataJSON, "group", "")
 
         if (dataJSON.has("id")) {
             id = try {
@@ -62,11 +62,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 .setSmallIcon(R.drawable.notification_icon_vector)
                 .setLargeIcon(Icon.createWithResource(this, R.drawable.application_icon))
 
-        if (group.isNotEmpty())
+        if (group!!.isNotEmpty())
             notificationBuilder.setGroup(group)
 
         applyString(dataJSON, "text", Consumer { text ->
-            notificationBuilder.setStyle(Notification.BigTextStyle().bigText(text))
+            notificationBuilder.style = Notification.BigTextStyle().bigText(text)
             notificationBuilder.setContentText(text)
         })
 
@@ -101,7 +101,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             }
         })
 
-        val commonTo = if (dataJSON.has("to")) dataJSON.getString("to") else null
+        val commonTo = getString(dataJSON, "to", null)
         applyString(dataJSON, "actions", Consumer { actionsStr ->
             val actions = JSONArray(actionsStr)
 
@@ -110,10 +110,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     val actionJSON = actions.getJSONObject(i)
                     val title = actionJSON.getString("title")
                     val data = if (actionJSON.has("data")) actionJSON.getJSONObject("data").toString() else null
-                    val to = if (actionJSON.has("to")) actionJSON.getString("to") else commonTo
+                    val to = getString(actionJSON, "to", commonTo)
                     val dismiss = getBoolean(actionJSON, "dismiss")
                     val reply = getBoolean(actionJSON, "reply")
-                    val replyText = if (actionJSON.has("replyText")) actionJSON.getString("replyText") else "Text"
+                    val replyText = getString(actionJSON, "replyText", "Text")
+                    val url = getString(actionJSON, "url", null)
 
                     val broadcastIntent = Intent(this, ResponseReceiver::class.java)
                     broadcastIntent.putExtra("id", id)
@@ -121,6 +122,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     broadcastIntent.putExtra("to", to)
                     broadcastIntent.putExtra("dismiss", dismiss)
                     broadcastIntent.putExtra("reply", reply)
+                    broadcastIntent.putExtra("url", url)
 
                     val actionIntent = PendingIntent.getBroadcast(this, (353..37930).random(), broadcastIntent, 0)
                     val notificationActionBuilder = Notification.Action.Builder(Icon.createWithResource(this, R.drawable.application_icon), title, actionIntent)
@@ -151,6 +153,18 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
             notificationManager.notify(group.hashCode(), summaryNotification)
         }
+    }
+
+    private fun getString(json: JSONObject, attribute: String, defaultValue: String?): String? {
+        if (json.has(attribute)) {
+            try {
+                return json.getString(attribute)
+            } catch (e: JSONException) {
+                Log.d("Exception", e.toString())
+            }
+        }
+
+        return defaultValue
     }
 
     private fun applyString(json: JSONObject, attribute: String, consumer: Consumer<String>) {

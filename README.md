@@ -62,5 +62,6 @@ print(response.status_code)
       - *to* - FCM token of the client for sending callback message (optional, overrides FCM token from the main data)
       - *data* - JSON object that is sent as callback message data when action is executed
       - *reply* - "true" if this action should open input control for entering text. Text is sent in "reply" property of the callback message
+      - *url* - URL to be opened in browser when action is executed
 
  
