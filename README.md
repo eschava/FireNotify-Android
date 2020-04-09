@@ -45,7 +45,7 @@ print(response.status_code)
  - *id* - numeric or string identifier of notification, not required. Notification having ID replaces another notification having the same ID
  - *dismiss* - only if ID is specified. Use "true" to remove previous notification having the same ID
  - *silent* - "true" if notification should be silent
- - *time* - UNIX timestamp with time when event happened. Is set to current time by default
+ - *time* - UNIX timestamp (in milliseconds) of the time when event happened. Is set to current time by default
  - *showTime* - "false" to hide time
  - *local* - "false" to do not transfer notification to wearable devices
  - *subText* - additional text shown in the notification badge
