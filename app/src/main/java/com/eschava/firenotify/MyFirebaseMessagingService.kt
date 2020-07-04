@@ -21,7 +21,6 @@ import java.util.function.Consumer
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class MyFirebaseMessagingService : FirebaseMessagingService() {
-
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val dataJSON = JSONObject(remoteMessage.data)
 
@@ -42,6 +41,25 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 notificationManager.cancel(id)
                 DeleteNotificationReceiver.deleteOrphanedGroups(notificationManager)
                 return
+            }
+
+            // if token is specified - ignore messages having outdated tokens
+            if (dataJSON.has("token") && dataJSON.getString("token").isNotBlank()) {
+                try {
+                    val lastIdTokenPreferences = applicationContext.getSharedPreferences("last_id_token", Context.MODE_PRIVATE)
+                    val token = dataJSON.getLong("token")
+
+                    val key = "" + id
+                    val prevToken = lastIdTokenPreferences.getLong(key, -1)
+                    if (prevToken > token)
+                        return
+
+                    val editor = lastIdTokenPreferences.edit()
+                    editor.putLong(key, token)
+                    editor.apply()
+                } catch (e: Exception) {
+                    Log.d("Exception", e.message, e)
+                }
             }
         }
 
@@ -137,7 +155,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                         notificationActionBuilder.addRemoteInput(RemoteInput.Builder("reply").setLabel(replyText).build())
                     notificationBuilder.addAction(notificationActionBuilder.build())
                 } catch (e: JSONException) {
-                    Log.d("Exception", e.toString())
+                    Log.d("Exception", e.message, e)
                 }
             }
         })
@@ -167,7 +185,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             try {
                 return json.getString(attribute)
             } catch (e: JSONException) {
-                Log.d("Exception", e.toString())
+                Log.d("Exception", e.message, e)
             }
         }
 
@@ -180,7 +198,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val value = json.getString(attribute)
                 consumer.accept(value)
             } catch (e: JSONException) {
-                Log.d("Exception", e.toString())
+                Log.d("Exception", e.message, e)
             }
         }
     }
@@ -192,7 +210,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 consumer.accept(value)
                 return true
             } catch (e: JSONException) {
-                Log.d("Exception", e.toString())
+                Log.d("Exception", e.message, e)
             }
         }
         return false
@@ -211,7 +229,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val value = json.getInt(attribute)
                 consumer.accept(value)
             } catch (e: JSONException) {
-                Log.d("Exception", e.toString())
+                Log.d("Exception", e.message, e)
             }
         }
     }
@@ -224,7 +242,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 consumer.accept(value)
                 return
             } catch (e: JSONException) {
-                Log.d("Exception", e.toString())
+                Log.d("Exception", e.message, e)
             }
         }
 
@@ -236,7 +254,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             try {
                 return json.getBoolean(attribute)
             } catch (e: JSONException) {
-                Log.d("Exception", e.toString())
+                Log.d("Exception", e.message, e)
             }
         }
 
@@ -252,6 +270,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val input = connection.getInputStream()
             BitmapFactory.decodeStream(input)
         } catch (e: IOException) {
+            Log.d("Exception", e.message, e)
             null
         }
     }

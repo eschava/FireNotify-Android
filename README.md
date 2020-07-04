@@ -56,6 +56,7 @@ print(response.status_code)
  - *image* - URL of the custom image
  - *icon* - URL of the custom icon
  - *to* - FCM token of the client for sending callback message
+ - *token* - optional number to specify time token (version) of message for given identifier. Could be used to avoid overtaking messages having the same id.   
  - *actions* - optional array of actions data (up to 4 elements). Each action could contain the next parameters:
       - *title* - text for action button
       - *dismiss* - "true" if executing action removes the notification
