@@ -17,6 +17,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        versionValueLabel.text = BuildConfig.VERSION_NAME
+
 //        actionBar?.setLogo(R.drawable.application_icon)
 //        actionBar?.setDisplayUseLogoEnabled(true)
 

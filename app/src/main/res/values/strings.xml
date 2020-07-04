@@ -8,4 +8,5 @@
     <string name="share_key">Share key</string>
     <string name="copy_token">Copy token</string>
     <string name="share_token">Share token</string>
+    <string name="versionLabel">Version:</string>
 </resources>
