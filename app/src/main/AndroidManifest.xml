@@ -36,6 +36,11 @@
             android:enabled="true"
             android:stopWithTask="false" />
 
+        <receiver
+            android:name="com.eschava.firenotify.DeleteNotificationReceiver"
+            android:enabled="true"
+            android:stopWithTask="false" />
+
 
     </application>
 

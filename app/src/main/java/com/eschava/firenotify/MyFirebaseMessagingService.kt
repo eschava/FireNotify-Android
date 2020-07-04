@@ -40,6 +40,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
             if (getBoolean(dataJSON,"dismiss")) {
                 notificationManager.cancel(id)
+                DeleteNotificationReceiver.deleteOrphanedGroups(notificationManager)
                 return
             }
         }
@@ -62,8 +63,14 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 .setSmallIcon(R.drawable.notification_icon_vector)
                 .setLargeIcon(Icon.createWithResource(this, R.drawable.application_icon))
 
-        if (group!!.isNotEmpty())
+        if (group!!.isNotEmpty()) {
             notificationBuilder.setGroup(group)
+
+            val deleteIntent = Intent(this, DeleteNotificationReceiver::class.java)
+            deleteIntent.putExtra("group", group)
+            val pendingDeleteIntent = PendingIntent.getBroadcast(this, (353..37930).random(), deleteIntent, 0)
+            notificationBuilder.setDeleteIntent(pendingDeleteIntent)
+        }
 
         applyString(dataJSON, "text", Consumer { text ->
             notificationBuilder.style = Notification.BigTextStyle().bigText(text)
