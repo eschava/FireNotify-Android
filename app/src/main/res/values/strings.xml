@@ -9,4 +9,8 @@
     <string name="copy_token">Copy token</string>
     <string name="share_token">Share token</string>
     <string name="versionLabel">Version:</string>
+    <string name="title_activity_main">FireNotify</string>
+    <string name="title_home">Home</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="title_settings">Settings</string>
 </resources>

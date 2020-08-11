@@ -17,7 +17,9 @@
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/application_icon" />
 
-        <activity android:name="com.eschava.firenotify.MainActivity">
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,23 +27,20 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.eschava.firenotify.MyFirebaseMessagingService">
+        <service android:name=".MyFirebaseMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
         <receiver
-            android:name="com.eschava.firenotify.ResponseReceiver"
+            android:name=".ResponseReceiver"
             android:enabled="true"
             android:stopWithTask="false" />
-
         <receiver
-            android:name="com.eschava.firenotify.DeleteNotificationReceiver"
+            android:name=".DeleteNotificationReceiver"
             android:enabled="true"
             android:stopWithTask="false" />
-
-
     </application>
 
 </manifest>

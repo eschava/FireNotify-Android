@@ -1,14 +1,12 @@
 package com.eschava.firenotify
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.iid.FirebaseInstanceId
-import kotlinx.android.synthetic.main.activity_main.*
+import androidx.navigation.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
 class MainActivity : AppCompatActivity() {
@@ -17,47 +15,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        versionValueLabel.text = BuildConfig.VERSION_NAME
+        val navView: BottomNavigationView = findViewById(R.id.nav_view)
 
-//        actionBar?.setLogo(R.drawable.application_icon)
-//        actionBar?.setDisplayUseLogoEnabled(true)
-
-        val fcmKey = getString(R.string.fcm_key)
-        keyTextView.setText(fcmKey)
-
-        copyKeyButton.setOnClickListener {
-            val clipboard: ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("Key", fcmKey)
-            clipboard.primaryClip = clip
-            Toast.makeText(this, "Key copied to clipboard", Toast.LENGTH_SHORT).show()
-        }
-
-        shareKeyButton.setOnClickListener {
-            val shareIntent = Intent()
-            shareIntent.action = Intent.ACTION_SEND
-            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Key")
-            shareIntent.putExtra(Intent.EXTRA_TEXT, fcmKey)
-            shareIntent.type = "text/plain"
-            startActivity(shareIntent)
-        }
-
-        val token = FirebaseInstanceId.getInstance().token
-        tokenTextView.setText(token)
-
-        copyTokenButton.setOnClickListener {
-            val clipboard: ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("Token", token)
-            clipboard.primaryClip = clip
-            Toast.makeText(this, "Token copied to clipboard", Toast.LENGTH_SHORT).show()
-        }
-
-        shareTokenButton.setOnClickListener {
-            val shareIntent = Intent()
-            shareIntent.action = Intent.ACTION_SEND
-            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Token")
-            shareIntent.putExtra(Intent.EXTRA_TEXT, token)
-            shareIntent.type = "text/plain"
-            startActivity(shareIntent)
-        }
+        val navController = findNavController(R.id.nav_host_fragment)
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        val appBarConfiguration = AppBarConfiguration(setOf(
+                R.id.navigation_home, R.id.navigation_notifications, R.id.navigation_settings))
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        navView.setupWithNavController(navController)
     }
 }
