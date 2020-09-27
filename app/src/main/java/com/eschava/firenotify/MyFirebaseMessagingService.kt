@@ -8,7 +8,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.Icon
-import android.util.Log
 import android.webkit.URLUtil
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -18,6 +17,7 @@ import org.json.JSONObject
 import java.io.IOException
 import java.net.URL
 import java.util.function.Consumer
+import kotlin.math.min
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class MyFirebaseMessagingService : FirebaseMessagingService() {
@@ -51,14 +51,16 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
                     val key = "" + id
                     val prevToken = lastIdTokenPreferences.getLong(key, -1)
-                    if (prevToken > token)
+                    if (prevToken > token) {
+                        Log.d("Outdated token", "Skipping message because its token less than last of $prevToken")
                         return
+                    }
 
                     val editor = lastIdTokenPreferences.edit()
                     editor.putLong(key, token)
                     editor.apply()
                 } catch (e: Exception) {
-                    Log.d("Exception", e.message, e)
+                    Log.e("Exception", e.message, e)
                 }
             }
         }
@@ -130,7 +132,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         applyString(dataJSON, "actions", Consumer { actionsStr ->
             val actions = JSONArray(actionsStr)
 
-            for (i in 0 until 3) {
+            for (i in 0 until min(3, actions.length())) {
                 try {
                     val actionJSON = actions.getJSONObject(i)
                     val title = actionJSON.getString("title")
@@ -155,7 +157,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                         notificationActionBuilder.addRemoteInput(RemoteInput.Builder("reply").setLabel(replyText).build())
                     notificationBuilder.addAction(notificationActionBuilder.build())
                 } catch (e: JSONException) {
-                    Log.d("Exception", e.message, e)
+                    Log.e("Exception", e.message, e)
                 }
             }
         })
@@ -185,7 +187,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             try {
                 return json.getString(attribute)
             } catch (e: JSONException) {
-                Log.d("Exception", e.message, e)
+                Log.e("Exception", e.message, e)
             }
         }
 
@@ -198,7 +200,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val value = json.getString(attribute)
                 consumer.accept(value)
             } catch (e: JSONException) {
-                Log.d("Exception", e.message, e)
+                Log.e("Exception", e.message, e)
             }
         }
     }
@@ -210,7 +212,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 consumer.accept(value)
                 return true
             } catch (e: JSONException) {
-                Log.d("Exception", e.message, e)
+                Log.e("Exception", e.message, e)
             }
         }
         return false
@@ -229,7 +231,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val value = json.getInt(attribute)
                 consumer.accept(value)
             } catch (e: JSONException) {
-                Log.d("Exception", e.message, e)
+                Log.e("Exception", e.message, e)
             }
         }
     }
@@ -242,7 +244,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 consumer.accept(value)
                 return
             } catch (e: JSONException) {
-                Log.d("Exception", e.message, e)
+                Log.e("Exception", e.message, e)
             }
         }
 
@@ -254,7 +256,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             try {
                 return json.getBoolean(attribute)
             } catch (e: JSONException) {
-                Log.d("Exception", e.message, e)
+                Log.e("Exception", e.message, e)
             }
         }
 
@@ -270,7 +272,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val input = connection.getInputStream()
             BitmapFactory.decodeStream(input)
         } catch (e: IOException) {
-            Log.d("Exception", e.message, e)
+            Log.e("Exception", e.message, e)
             null
         }
     }

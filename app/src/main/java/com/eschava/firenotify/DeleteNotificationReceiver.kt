@@ -8,6 +8,7 @@ import android.service.notification.StatusBarNotification
 
 class DeleteNotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
+        Log.d("Notification", "Received delete notification intent " + intent?.toUri(0))
 //        val group = intent?.getStringExtra("group") // group is incorrect for some reason
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -32,6 +33,7 @@ class DeleteNotificationReceiver : BroadcastReceiver() {
                     for (notification: StatusBarNotification in notificationManager.activeNotifications) {
                         if (notification.isGroup && notification.groupKey == groupKey) {
                             notificationManager.cancel(notification.id)
+                            Log.d("OrphanedNotification", "delete orphaned notification for group $groupKey")
                         }
                     }
                 }

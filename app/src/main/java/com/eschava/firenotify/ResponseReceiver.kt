@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.widget.Toast
 import okhttp3.*
 import org.json.JSONObject
@@ -17,6 +16,8 @@ import org.json.JSONObject
 
 class ResponseReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
+        Log.d("Response", "Received intent " + intent?.toUri(0))
+
         val id = intent?.getIntExtra("id", 0)
         val dismiss = intent?.getBooleanExtra("dismiss", false)
         val reply = intent?.getBooleanExtra("reply", false)
@@ -28,7 +29,7 @@ class ResponseReceiver : BroadcastReceiver() {
         if (url != null) {
             val urlIntent = Intent(Intent.ACTION_VIEW)
             urlIntent.data = Uri.parse(url)
-            urlIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            urlIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(urlIntent)
         }
 
@@ -45,6 +46,7 @@ class ResponseReceiver : BroadcastReceiver() {
         } else if (idToDismiss != null) {
             val notificationManager: NotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.cancel(idToDismiss)
+            DeleteNotificationReceiver.deleteOrphanedGroups(notificationManager)
         }
     }
 
@@ -89,7 +91,7 @@ class ResponseReceiver : BroadcastReceiver() {
 
             } catch (e: Exception) {
                 showToast(e.message)
-                Log.d("Exception", e.toString())
+                Log.e("Exception", e.toString(), e)
             }
             return null
         }

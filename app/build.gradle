@@ -47,6 +47,7 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.github.bosphere.android-filelogger:filelogger:1.0.7'
 }
 
 apply plugin: 'com.google.gms.google-services'

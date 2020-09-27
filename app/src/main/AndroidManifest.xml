@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.eschava.firenotify">
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
     <application
         android:networkSecurityConfig="@xml/network_security_config"
         android:allowBackup="true"
@@ -11,6 +13,7 @@
         android:roundIcon="@drawable/application_icon"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
+        android:name=".App"
     >
 
         <meta-data
