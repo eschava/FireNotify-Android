@@ -53,7 +53,7 @@ class HomeFragment : Fragment() {
         copyKeyButton.setOnClickListener {
             val clipboard: ClipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("Key", fcmKey)
-            clipboard.primaryClip = clip
+            clipboard.setPrimaryClip(clip)
             Toast.makeText(context, "Key copied to clipboard", Toast.LENGTH_SHORT).show()
         }
 
@@ -72,7 +72,7 @@ class HomeFragment : Fragment() {
         copyTokenButton.setOnClickListener {
             val clipboard: ClipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("Token", token)
-            clipboard.primaryClip = clip
+            clipboard.setPrimaryClip(clip)
             Toast.makeText(context, "Token copied to clipboard", Toast.LENGTH_SHORT).show()
         }
 

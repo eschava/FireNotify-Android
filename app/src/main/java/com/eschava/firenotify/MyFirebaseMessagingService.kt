@@ -8,7 +8,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.Icon
+import android.os.Build
 import android.webkit.URLUtil
+import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import org.json.JSONArray
@@ -22,7 +24,7 @@ import kotlin.math.min
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        val dataJSON = JSONObject(remoteMessage.data)
+        val dataJSON = JSONObject(remoteMessage.data as Map<*, *>)
 
         Log.d("Message", dataJSON.toString())
 
@@ -69,116 +71,226 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
         val silent = getBoolean(dataJSON, "silent")
-        val channelId = if (silent) "silent" else "default"
-        val channelName = if (silent) "Silent" else "Default"
-        val importance = if (silent) NotificationManager.IMPORTANCE_DEFAULT else NotificationManager.IMPORTANCE_HIGH
 
-        val channel = NotificationChannel(channelId, channelName, importance)
-        if (silent)
-            channel.setSound(null, null)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelId = if (silent) "silent" else "default"
+            val channelName = if (silent) "Silent" else "Default"
+            val importance = if (silent) NotificationManager.IMPORTANCE_DEFAULT else NotificationManager.IMPORTANCE_HIGH
 
-        notificationManager.createNotificationChannel(channel)
+            val channel = NotificationChannel(channelId, channelName, importance)
+            if (silent)
+                channel.setSound(null, null)
 
-        val notificationBuilder = Notification.Builder(this, channelId)
-                .setSmallIcon(R.drawable.notification_icon_vector)
-                .setLargeIcon(Icon.createWithResource(this, R.drawable.application_icon))
+            notificationManager.createNotificationChannel(channel)
 
-        if (group!!.isNotEmpty()) {
-            notificationBuilder.setGroup(group)
-
-            val deleteIntent = Intent(this, DeleteNotificationReceiver::class.java)
-            deleteIntent.putExtra("group", group)
-            val pendingDeleteIntent = PendingIntent.getBroadcast(this, (353..37930).random(), deleteIntent, 0)
-            notificationBuilder.setDeleteIntent(pendingDeleteIntent)
-        }
-
-        applyString(dataJSON, "text", Consumer { text ->
-            notificationBuilder.style = Notification.BigTextStyle().bigText(text)
-            notificationBuilder.setContentText(text)
-        })
-
-        applyString(dataJSON, "title", Consumer { title -> notificationBuilder.setContentTitle(title) })
-        applyString(dataJSON, "subText", Consumer { subText -> notificationBuilder.setSubText(subText) })
-        applyInteger(dataJSON, "number", Consumer { number -> notificationBuilder.setNumber(number) })
-        applyLong(dataJSON, "time", System.currentTimeMillis(), Consumer { time -> notificationBuilder.setWhen(time) })
-        applyBoolean(dataJSON, "showTime", true, Consumer { showTime -> notificationBuilder.setShowWhen(showTime) })
-        applyBoolean(dataJSON, "autoCancel", true, Consumer { autoCancel -> notificationBuilder.setAutoCancel(autoCancel) })
-        applyBoolean(dataJSON, "onlyOnce", Consumer { onlyOnce -> notificationBuilder.setOnlyAlertOnce(onlyOnce) })
-        applyBoolean(dataJSON, "local", Consumer { local -> notificationBuilder.setLocalOnly(local) })
-        applyString(dataJSON, "color", Consumer { color -> notificationBuilder.setColor(Color.parseColor(color)) })
-        applyBoolean(dataJSON, "colorized", Consumer { colorized -> notificationBuilder.setColorized(colorized) })
-        applyBoolean(dataJSON, "persistent", Consumer { persistent -> notificationBuilder.setOngoing(persistent) })
-
-        applyString(dataJSON, "image", Consumer { image ->
-            if (URLUtil.isValidUrl(image)) {
-                val imageBmp = getBitmapFromURL(image)
-                if (imageBmp != null) {
-                    notificationBuilder.style = Notification.BigPictureStyle().bigPicture(imageBmp).bigLargeIcon(Icon.createWithResource(this, R.drawable.blank_icon))
-                    //notificationBuilder.setLargeIcon(imageBmp)
-                }
-            }
-        })
-
-        applyString(dataJSON, "icon", Consumer { icon ->
-            if (URLUtil.isValidUrl(icon)) {
-                val iconBmp = getBitmapFromURL(icon)
-                if (iconBmp != null) {
-                    notificationBuilder.setLargeIcon(Icon.createWithBitmap(iconBmp))
-                }
-            }
-        })
-
-        val commonTo = getString(dataJSON, "to", null)
-        applyString(dataJSON, "actions", Consumer { actionsStr ->
-            val actions = JSONArray(actionsStr)
-
-            for (i in 0 until min(3, actions.length())) {
-                try {
-                    val actionJSON = actions.getJSONObject(i)
-                    val title = actionJSON.getString("title")
-                    val data = if (actionJSON.has("data")) actionJSON.getJSONObject("data").toString() else null
-                    val to = getString(actionJSON, "to", commonTo)
-                    val dismiss = getBoolean(actionJSON, "dismiss")
-                    val reply = getBoolean(actionJSON, "reply")
-                    val replyText = getString(actionJSON, "replyText", "Text")
-                    val url = getString(actionJSON, "url", null)
-
-                    val broadcastIntent = Intent(this, ResponseReceiver::class.java)
-                    broadcastIntent.putExtra("id", id)
-                    broadcastIntent.putExtra("data", data)
-                    broadcastIntent.putExtra("to", to)
-                    broadcastIntent.putExtra("dismiss", dismiss)
-                    broadcastIntent.putExtra("reply", reply)
-                    broadcastIntent.putExtra("url", url)
-
-                    val actionIntent = PendingIntent.getBroadcast(this, (353..37930).random(), broadcastIntent, 0)
-                    val notificationActionBuilder = Notification.Action.Builder(Icon.createWithResource(this, R.drawable.application_icon), title, actionIntent)
-                    if (reply)
-                        notificationActionBuilder.addRemoteInput(RemoteInput.Builder("reply").setLabel(replyText).build())
-                    notificationBuilder.addAction(notificationActionBuilder.build())
-                } catch (e: JSONException) {
-                    Log.e("Exception", e.message, e)
-                }
-            }
-        })
-
-        val notification = notificationBuilder.build()
-        notificationManager.notify(id /* ID of notification */, notification)
-
-        if (group.isNotEmpty()) {
-            val summaryNotification = Notification.Builder(this, channelId)
-//                        .setContentTitle("Your summary message")
+            val notificationBuilder = Notification.Builder(this, channelId)
                     .setSmallIcon(R.drawable.notification_icon_vector)
-//                .setLargeIcon(largeIcon)
-                    .setStyle(Notification.InboxStyle()
-                            .addLine("Details about your first notification")
-                            .addLine("Details about your second notification")
-                            .setBigContentTitle("5 new notifications"))
-                    .setGroup(group)
-                    .setGroupSummary(true)
-                    .build()
+                    .setLargeIcon(Icon.createWithResource(this, R.drawable.application_icon))
 
-            notificationManager.notify(group.hashCode(), summaryNotification)
+            if (group!!.isNotEmpty()) {
+                notificationBuilder.setGroup(group)
+
+                val deleteIntent = Intent(this, DeleteNotificationReceiver::class.java)
+                deleteIntent.putExtra("group", group)
+                val pendingDeleteIntent = PendingIntent.getBroadcast(this, (353..37930).random(), deleteIntent, 0)
+                notificationBuilder.setDeleteIntent(pendingDeleteIntent)
+            }
+
+            applyString(dataJSON, "text", Consumer { text ->
+                notificationBuilder.style = Notification.BigTextStyle().bigText(text)
+                notificationBuilder.setContentText(text)
+            })
+
+            applyString(dataJSON, "title", Consumer { title -> notificationBuilder.setContentTitle(title) })
+            applyString(dataJSON, "subText", Consumer { subText -> notificationBuilder.setSubText(subText) })
+            applyInteger(dataJSON, "number", Consumer { number -> notificationBuilder.setNumber(number) })
+            applyLong(dataJSON, "time", System.currentTimeMillis(), Consumer { time -> notificationBuilder.setWhen(time) })
+            applyBoolean(dataJSON, "showTime", true, Consumer { showTime -> notificationBuilder.setShowWhen(showTime) })
+            applyBoolean(dataJSON, "autoCancel", true, Consumer { autoCancel -> notificationBuilder.setAutoCancel(autoCancel) })
+            applyBoolean(dataJSON, "onlyOnce", Consumer { onlyOnce -> notificationBuilder.setOnlyAlertOnce(onlyOnce) })
+            applyBoolean(dataJSON, "local", Consumer { local -> notificationBuilder.setLocalOnly(local) })
+            applyString(dataJSON, "color", Consumer { color -> notificationBuilder.setColor(Color.parseColor(color)) })
+            applyBoolean(dataJSON, "colorized", Consumer { colorized -> notificationBuilder.setColorized(colorized) })
+            applyBoolean(dataJSON, "persistent", Consumer { persistent -> notificationBuilder.setOngoing(persistent) })
+
+            applyString(dataJSON, "image", Consumer { image ->
+                if (URLUtil.isValidUrl(image)) {
+                    val imageBmp = getBitmapFromURL(image)
+                    if (imageBmp != null) {
+                        notificationBuilder.style = Notification.BigPictureStyle().bigPicture(imageBmp).bigLargeIcon(Icon.createWithResource(this, R.drawable.blank_icon))
+                        //notificationBuilder.setLargeIcon(imageBmp)
+                    }
+                }
+            })
+
+            applyString(dataJSON, "icon", Consumer { icon ->
+                if (URLUtil.isValidUrl(icon)) {
+                    val iconBmp = getBitmapFromURL(icon)
+                    if (iconBmp != null) {
+                        notificationBuilder.setLargeIcon(Icon.createWithBitmap(iconBmp))
+                    }
+                }
+            })
+
+            val commonTo = getString(dataJSON, "to", null)
+            applyString(dataJSON, "actions", Consumer { actionsStr ->
+                val actions = JSONArray(actionsStr)
+
+                for (i in 0 until min(3, actions.length())) {
+                    try {
+                        val actionJSON = actions.getJSONObject(i)
+                        val title = actionJSON.getString("title")
+                        val data = if (actionJSON.has("data")) actionJSON.getJSONObject("data").toString() else null
+                        val to = getString(actionJSON, "to", commonTo)
+                        val dismiss = getBoolean(actionJSON, "dismiss")
+                        val reply = getBoolean(actionJSON, "reply")
+                        val replyText = getString(actionJSON, "replyText", "Text")
+                        val url = getString(actionJSON, "url", null)
+
+                        val broadcastIntent = Intent(this, ResponseReceiver::class.java)
+                        broadcastIntent.putExtra("id", id)
+                        broadcastIntent.putExtra("data", data)
+                        broadcastIntent.putExtra("to", to)
+                        broadcastIntent.putExtra("dismiss", dismiss)
+                        broadcastIntent.putExtra("reply", reply)
+                        broadcastIntent.putExtra("url", url)
+
+                        val actionIntent = PendingIntent.getBroadcast(this, (353..37930).random(), broadcastIntent, 0)
+                        val notificationActionBuilder = Notification.Action.Builder(Icon.createWithResource(this, R.drawable.application_icon), title, actionIntent)
+                        if (reply)
+                            notificationActionBuilder.addRemoteInput(RemoteInput.Builder("reply").setLabel(replyText).build())
+                        notificationBuilder.addAction(notificationActionBuilder.build())
+                    } catch (e: JSONException) {
+                        Log.e("Exception", e.message, e)
+                    }
+                }
+            })
+
+            val notification = notificationBuilder.build()
+            notificationManager.notify(id /* ID of notification */, notification)
+
+            if (group.isNotEmpty()) {
+                val summaryNotification = Notification.Builder(this, channelId)
+//                        .setContentTitle("Your summary message")
+                        .setSmallIcon(R.drawable.notification_icon_vector)
+//                .setLargeIcon(largeIcon)
+                        .setStyle(Notification.InboxStyle()
+                                .addLine("Details about your first notification")
+                                .addLine("Details about your second notification")
+                                .setBigContentTitle("5 new notifications"))
+                        .setGroup(group)
+                        .setGroupSummary(true)
+                        .build()
+
+                notificationManager.notify(group.hashCode(), summaryNotification)
+            }
+        } else { // VERSION.SDK_INT < O
+            val notificationBuilder = NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.notification_icon_vector)
+                .setLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.application_icon))
+
+            if (silent)
+                notificationBuilder.setNotificationSilent()
+
+            if (group!!.isNotEmpty()) {
+                notificationBuilder.setGroup(group)
+
+                val deleteIntent = Intent(this, DeleteNotificationReceiver::class.java)
+                deleteIntent.putExtra("group", group)
+                val pendingDeleteIntent = PendingIntent.getBroadcast(this, (353..37930).random(), deleteIntent, 0)
+                notificationBuilder.setDeleteIntent(pendingDeleteIntent)
+            }
+
+            applyString(dataJSON, "text", Consumer { text ->
+                notificationBuilder.setStyle(NotificationCompat.BigTextStyle().bigText(text))
+                notificationBuilder.setContentText(text)
+            })
+
+            applyString(dataJSON, "title", Consumer { title -> notificationBuilder.setContentTitle(title) })
+            applyString(dataJSON, "subText", Consumer { subText -> notificationBuilder.setSubText(subText) })
+            applyInteger(dataJSON, "number", Consumer { number -> notificationBuilder.setNumber(number) })
+            applyLong(dataJSON, "time", System.currentTimeMillis(), Consumer { time -> notificationBuilder.setWhen(time) })
+            applyBoolean(dataJSON, "showTime", true, Consumer { showTime -> notificationBuilder.setShowWhen(showTime) })
+            applyBoolean(dataJSON, "autoCancel", true, Consumer { autoCancel -> notificationBuilder.setAutoCancel(autoCancel) })
+            applyBoolean(dataJSON, "onlyOnce", Consumer { onlyOnce -> notificationBuilder.setOnlyAlertOnce(onlyOnce) })
+            applyBoolean(dataJSON, "local", Consumer { local -> notificationBuilder.setLocalOnly(local) })
+            applyString(dataJSON, "color", Consumer { color -> notificationBuilder.color = Color.parseColor(color) })
+            applyBoolean(dataJSON, "colorized", Consumer { colorized -> notificationBuilder.setColorized(colorized) })
+            applyBoolean(dataJSON, "persistent", Consumer { persistent -> notificationBuilder.setOngoing(persistent) })
+
+            applyString(dataJSON, "image", Consumer { image ->
+                if (URLUtil.isValidUrl(image)) {
+                    val imageBmp = getBitmapFromURL(image)
+                    if (imageBmp != null) {
+                        notificationBuilder.setStyle(NotificationCompat.BigPictureStyle().bigPicture(imageBmp).bigLargeIcon(BitmapFactory.decodeResource(resources, R.drawable.blank_icon)))
+                        //notificationBuilder.setLargeIcon(imageBmp)
+                    }
+                }
+            })
+
+            applyString(dataJSON, "icon", Consumer { icon ->
+                if (URLUtil.isValidUrl(icon)) {
+                    val iconBmp = getBitmapFromURL(icon)
+                    if (iconBmp != null) {
+                        notificationBuilder.setLargeIcon(iconBmp)
+                    }
+                }
+            })
+
+            val commonTo = getString(dataJSON, "to", null)
+            applyString(dataJSON, "actions", Consumer { actionsStr ->
+                val actions = JSONArray(actionsStr)
+
+                for (i in 0 until min(3, actions.length())) {
+                    try {
+                        val actionJSON = actions.getJSONObject(i)
+                        val title = actionJSON.getString("title")
+                        val data = if (actionJSON.has("data")) actionJSON.getJSONObject("data").toString() else null
+                        val to = getString(actionJSON, "to", commonTo)
+                        val dismiss = getBoolean(actionJSON, "dismiss")
+                        val reply = getBoolean(actionJSON, "reply")
+                        val replyText = getString(actionJSON, "replyText", "Text")
+                        val url = getString(actionJSON, "url", null)
+
+                        val broadcastIntent = Intent(this, ResponseReceiver::class.java)
+                        broadcastIntent.putExtra("id", id)
+                        broadcastIntent.putExtra("data", data)
+                        broadcastIntent.putExtra("to", to)
+                        broadcastIntent.putExtra("dismiss", dismiss)
+                        broadcastIntent.putExtra("reply", reply)
+                        broadcastIntent.putExtra("url", url)
+
+                        val actionIntent = PendingIntent.getBroadcast(this, (353..37930).random(), broadcastIntent, 0)
+                        val notificationActionBuilder = NotificationCompat.Action.Builder(R.drawable.application_icon, title, actionIntent)
+                        if (reply)
+                            notificationActionBuilder.addRemoteInput(androidx.core.app.RemoteInput.Builder("reply").setLabel(replyText).build())
+                        notificationBuilder.addAction(notificationActionBuilder.build())
+                    } catch (e: JSONException) {
+                        Log.e("Exception", e.message, e)
+                    }
+                }
+            })
+
+            val notification = notificationBuilder.build()
+            notificationManager.notify(id /* ID of notification */, notification)
+
+            if (group.isNotEmpty()) {
+                val summaryNotification = NotificationCompat.Builder(this)
+//                        .setContentTitle("Your summary message")
+                        .setSmallIcon(R.drawable.notification_icon_vector)
+//                .setLargeIcon(largeIcon)
+                        .setStyle(NotificationCompat.InboxStyle()
+                                .addLine("Details about your first notification")
+                                .addLine("Details about your second notification")
+                                .setBigContentTitle("5 new notifications"))
+                        .setGroup(group)
+                        .setGroupSummary(true)
+
+                if (silent)
+                    summaryNotification.setNotificationSilent()
+
+                notificationManager.notify(group.hashCode(), summaryNotification.build())
+            }
         }
     }
 
